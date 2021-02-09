@@ -3,10 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\NoteRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=NoteRepository::class)
+ * @ApiResource()
  */
 class Note
 {
@@ -31,6 +33,12 @@ class Note
      * @ORM\Column(type="text")
      */
     private $content;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="notes")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $user;
 
     public function getId(): ?int
     {
@@ -69,6 +77,22 @@ class Note
     public function setContent(string $content): self
     {
         $this->content = $content;
+
+        return $this;
+    }
+
+    /**
+     * @return User
+     */
+    public function getUser(): User {
+        return $this->user;
+    }
+
+    /**
+     * @param User $user
+     */
+    public function setUser(User $user): self {
+        $this->user = $user;
 
         return $this;
     }
