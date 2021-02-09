@@ -5,8 +5,10 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Serializer;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use App\Entity\Note;
 /**
  * @Route("/notes")
@@ -32,12 +34,11 @@ class NotesController extends AbstractController {
     }
 
     /**
-     * @Route("/note/{id}", name="note_by_id", requirements={"id"="\d+"})
+     * @Route("/note/{id}", name="note_by_id", requirements={"id"="\d+"}, methods={"GET"})
+     * @ParamConverter("note", class="App:Note")
      */
-    public function note($id) {
-        return $this->json(
-            $this->getDoctrine()->getRepository(Note::class)->find($id)
-        );
+    public function note(Note $note) {
+        return $this->json($note);
     }
 
     /**
@@ -52,5 +53,16 @@ class NotesController extends AbstractController {
         $en->flush();
 
         return $this->json($note);
+    }
+
+    /**
+     * @Route("/note/{id}", name="note_delete", methods={"DELETE"})
+     */
+    public function delete(Note $note) {
+        $en = $this->getDoctrine()->getManager();
+        $en->remove($note);
+        $en->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
