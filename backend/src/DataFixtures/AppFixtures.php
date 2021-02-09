@@ -4,30 +4,69 @@ namespace App\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
 use App\Entity\Note;
+use App\Entity\User;
 
 class AppFixtures extends Fixture
 {
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $passwordEncoder;
+
+    /**
+     * @var \Faker\Factory
+     */
+    private $faker;
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder) {
+        $this->passwordEncoder = $passwordEncoder;
+        $this->faker = \Faker\Factory::create();
+    }
+
     /**
      * Load data fixtures with the passed EntityManager
      * @param ObjectManager $manager
      */
     public function load(ObjectManager $manager)
     {
-        // $product = new Product();
-        // $manager->persist($product);
-        $note = new Note();
-        $note->setTitle('A first note!');
-        $note->setTaken(new \DateTime('2021-02-09 10:49:01'));
-        $note->setContent('Must finish by the end of the week!');
-        $manager->persist($note);
+        $this->loadUsers($manager);
+        $this->loadNotes($manager);
+        
+    }
 
-        $note = new Note();
-        $note->setTitle('The second note!');
-        $note->setTaken(new \DateTime('2021-02-09 10:51:31'));
-        $note->setContent('Whats gonna kill you is the second part');
-        $manager->persist($note);
+    public function loadNotes(ObjectManager $manager) {
+        $user = $this->getReference('admin');
 
+        for ($i = 0; $i < 100; $i++) {
+            $note = new Note();
+            $note->setTitle($this->faker->realText(30));
+            $note->setTaken($this->faker->dateTimeThisYear);
+            $note->setContent($this->faker->realText());
+            $note->setUser($user);
+            
+            $this->setReference("note_$i", $note); 
+
+            $manager->persist($note);
+        }
+        $manager->flush();
+    }
+
+    public function loadUsers(ObjectManager $manager) {
+        $user = new User();
+        $user->setUsername('admin');
+        $user->setEmail('admin@not.es');
+        $user->setName('John Doe');
+        $user->setPassword($this->passwordEncoder->encodePassword(
+            $user,
+            'admin42069'
+        ));
+
+        $this->addReference('admin', $user);
+
+        $manager->persist($user);
         $manager->flush();
     }
 }
