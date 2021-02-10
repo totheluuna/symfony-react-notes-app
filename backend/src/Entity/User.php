@@ -7,11 +7,44 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups as Groups;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *      itemOperations={
+ *          "get"={
+ *              "access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+ *              "normalization_context"={
+ *                  "groups"={"get"}
+ *              }         
+ *          },
+ *          "put"={
+ *              "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object == user",
+ *              "denormalizationContext"={
+ *                  "groups"={"put"}
+ *              },
+ *              "normalization_context"={
+ *                  "groups"={"get"}
+ *              }          
+ *          }
+ *      },
+ *      collectionOperations={
+ *          "post"={
+ *              "denormalization_context"={
+ *                  "groups"={"post"}
+ *              },
+ *              "normalization_context"={
+ *                  "groups"={"get"}
+ *              }
+ *          }
+ *      },
+ * )
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity("username")
+ * @UniqueEntity("email")
  */
 class User implements UserInterface
 {
@@ -19,31 +52,60 @@ class User implements UserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"get"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"get", "post"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=6, max=255)
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"put", "post"})
+     * @Assert\NotBlank()
+     * @Assert\Email()
+     * @Assert\Length(min=6, max=255)
+     * 
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"put", "post"})
+     * @Assert\NotBlank()
+     * @Assert\Regex(
+     *      pattern="/(?=.*[a-zA-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
+     *      message="Password must be seven characters long and contain at least one digit, one upper case letter, and one lower case letter"
+     * )
      */
     private $password;
 
     /**
+     * @Groups({"put", "post"})
+     * @Assert\NotBlank()
+     * @Assert\Expression(
+     *      "this.getPassword() === this.getRetypedPassword()",
+     *      message="Passwords do not match"
+     * )
+     */
+    private $retypedPassword;
+
+    /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"get", "post", "put"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=6, max=255)
      */
     private $name;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Note", mappedBy="user")
+     * @Groups({"get"})
      */
     private $notes;
 
@@ -148,5 +210,13 @@ class User implements UserInterface
      */
     public function eraseCredentials(){
         
+    }
+
+    public function getRetypedPassword() {
+        return $this->retypedPassword;
+    }    
+
+    public function setRetypedPassword($retypedPassword): void {
+        $this->retypedPassword = $retypedPassword;
     }
 }

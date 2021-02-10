@@ -21,6 +21,36 @@ class AppFixtures extends Fixture
      */
     private $faker;
 
+    private const USERS = [
+        [
+            'username' => 'admin42069',
+            'email' => 'admin42069@not.es',
+            'name' => 'Admin42069 User',
+            'password' => 'Secret42069'
+        ],
+        [
+            'username' => 'john_doe',
+            'email' => 'john_doe@not.es',
+            'name' => 'John Doe',
+            'password' => 'Secret42069'
+
+        ], 
+        [
+            'username' => 'rob_smith',
+            'email' => 'rob_smith@not.es',
+            'name' => 'Rob Smith',
+            'password' => 'Secret42069'
+
+        ],  
+        [
+            'username' => 'mike_hawk',
+            'email' => 'mike_hawk@not.es',
+            'name' => 'Mike Hawk',
+            'password' => 'Secret42069'
+
+        ] 
+    ];
+
     public function __construct(UserPasswordEncoderInterface $passwordEncoder) {
         $this->passwordEncoder = $passwordEncoder;
         $this->faker = \Faker\Factory::create();

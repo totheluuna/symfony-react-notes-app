@@ -2,13 +2,27 @@
 
 namespace App\Entity;
 
+use Doctrine\ORM\Mapping as ORM;
 use App\Repository\NoteRepository;
 use ApiPlatform\Core\Annotation\ApiResource;
-use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=NoteRepository::class)
- * @ApiResource()
+ * @ApiResource(
+ *      itemOperations={
+ *          "get",
+ *          "put"={
+ *              "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object.getUser() == user"         
+ *          }
+ *      },
+ *      collectionOperations={
+ *          "get",
+ *          "post"={
+ *              "access_control"="is_granted('IS_AUTHENTICATED_FULLY')"         
+ *          }
+ *      }
+ * )
  */
 class Note
 {
@@ -21,16 +35,22 @@ class Note
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Length(min=10)
      */
     private $title;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Assert\NotBlank()
+     * @Assert\Type("\DateTimeInterface")
      */
     private $taken;
 
     /**
      * @ORM\Column(type="text")
+     * @Assert\NotBlank()
+     * @Assert\Length(min=20)
      */
     private $content;
 
