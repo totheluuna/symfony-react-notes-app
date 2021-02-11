@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -48,6 +49,11 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class User implements UserInterface
 {
+    const ROLE_WRITER = 'ROLE_WRITER';
+    const ROLE_EDITOR = 'ROLE_EDITOR';
+    const ROLE_ADMIN = 'ROLE_ADMIN';
+    const ROLE_SUPERADMIN = 'ROLE_SUPERADMIN';
+    const DEFAULT_ROLES = [self::ROLE_WRITER];
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -76,7 +82,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"put", "post"})
+     * @Groups({"put", "post", "get-admin"})
      * @Assert\NotBlank()
      * @Assert\Regex(
      *      pattern="/(?=.*[a-zA-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
@@ -106,11 +112,18 @@ class User implements UserInterface
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Note", mappedBy="user")
      * @Groups({"get"})
+     * @ApiSubresource()
      */
     private $notes;
 
+    /**
+     * @ORM\Column(type="simple_array", length=200)
+     */
+    private $roles;
+
     public function __construct() {
         $this->notes = new ArrayCollection();
+        $this->roles = self::DEFAULT_ROLES;
     }
 
     public function getId(): ?int
@@ -173,22 +186,12 @@ class User implements UserInterface
         return $this->notes;
     }
 
-    /**
-     * Returns the roles granted to the user.
-     *
-     *     public function getRoles()
-     *     {
-     *         return ['ROLE_USER'];
-     *     }
-     *
-     * Alternatively, the roles might be stored on a ``roles`` property,
-     * and populated in any number of different ways when the user object
-     * is created.
-     *
-     * @return string[] The user roles
-     */
-    public function getRoles() {
-        return ['ROLE_USER'];
+    public function getRoles(): array {
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles) {
+        return $this->roles = $roles;
     }
 
     /**
