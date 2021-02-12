@@ -3,10 +3,17 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import LoginPage from './pages/account/Login';
+import SignUpPage from './pages/account/SignUp';
+import { Container } from '@material-ui/core';
+
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Container>
+      {/* <SignUpPage /> */}
+      <LoginPage />
+    </Container>
   </React.StrictMode>,
   document.getElementById('root')
 );
