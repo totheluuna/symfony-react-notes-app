@@ -10,10 +10,7 @@ import { Container } from '@material-ui/core';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Container>
-      {/* <SignUpPage /> */}
-      <LoginPage />
-    </Container>
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 );
